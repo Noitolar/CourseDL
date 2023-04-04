@@ -45,9 +45,14 @@ class SimpleConvClassifier(nn.Module):
 
 
 class Resnet18Classifier(nn.Module):
-    def __init__(self, num_classes, num_channels=3, use_pretrained=False):
+    def __init__(self, num_classes, num_channels=3, from_pretrained=None):
         super().__init__()
-        self.resnet = vmodels.resnet18(weights=use_pretrained)
+        if from_pretrained == "default":
+            self.resnet = vmodels.resnet18(weights=vmodels.ResNet18_Weights.DEFAULT)
+        elif from_pretrained == "imagenet":
+            self.resnet = vmodels.resnet18(weights=vmodels.ResNet18_Weights.IMAGENET1K_V1)
+        else:
+            self.resnet = vmodels.resnet18(weights=None)
         self.resnet.conv1 = nn.Conv2d(num_channels, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
         self.resnet.fc = nn.Linear(512, num_classes)
 

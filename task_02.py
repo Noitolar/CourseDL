@@ -1,28 +1,20 @@
-import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data as tdata
 import transformers as tfm
-import random
-import numpy as np
 import torchvision.transforms as trans
 import utils.cv as ucv
-import utils.common as ucommon
 
 if __name__ == "__main__":
-    handler = ucv.handler.ModelHandlerCv(None, nn.CrossEntropyLoss(), torch.device("cuda:0"), logpath="./logs/dogs_vs_cats.resnet18.log")
-    handler.metadata["dataset"] = "dogs_vs_cats"
-    handler.metadata["seed"] = 0
-    handler.metadata["batch_size"] = 32
-    handler.metadata["num_pochs"] = 10
-    handler.metadata["optimizer_params"] = {"lr": 0.001, "momentum": 0.9, "nesterov": True, "weight_decay": 5e-4}
-    handler.metadata["scheduler_params"] = {"step_size": 3, "gamma": 0.2}
-    handler.metadata["checkpoint_path"] = "./checkpoints/dogs_vs_cats.resnet18.pt"
+    seed = 0
+    tfm.set_seed(seed)
 
-    random.seed(handler.metadata["seed"])
-    np.random.seed(handler.metadata["seed"])
-    tfm.set_seed(handler.metadata["seed"])
+    model = ucv.nnmodels.Resnet18Classifier(num_classes=2, num_channels=3, from_pretrained="imagenet")
+    criterion = nn.CrossEntropyLoss()
+    device = "cuda:0"
+    logpath = "./logs/dogs_vs_cats.resnet18.log"
 
+    dataset = "dogs_vs_cats"
     trn_preprocess = trans.Compose([
         trans.Resize((256, 256)),
         trans.RandomCrop((224, 224)),
@@ -35,14 +27,31 @@ if __name__ == "__main__":
         trans.ToTensor(),
         trans.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.2225))
     ])
-    trn_set, val_set = ucv.dataset.get_dataset(handler.metadata["dataset"], trn_preprocess, val_preprocess)
-    trn_loader = tdata.DataLoader(trn_set, batch_size=handler.metadata["batch_size"], shuffle=True)
-    val_loader = tdata.DataLoader(val_set, batch_size=handler.metadata["batch_size"] * 8)
 
-    handler.model = ucv.nnmodels.Resnet18Classifier(num_classes=2, num_channels=3, use_pretrained=True).to(handler.device)
-    handler.optimizer = optim.SGD(handler.model.parameters(), **handler.metadata["optimizer_params"])
-    handler.scheduler = optim.lr_scheduler.StepLR(handler.optimizer, **handler.metadata["scheduler_params"])
+    batch_size = 32
+    num_epochs = 8
+    optimizer_params = {"lr": 0.001, "momentum": 0.9, "nesterov": True}
+    optimizer = optim.SGD(model.parameters(), **optimizer_params)
+    scheduler_params = {"milestones": [4, 6], "gamma": 0.2}
+    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, **scheduler_params)
+    checkpoint_path = "./checkpoints/dogs_vs_cats.resnet18.pt"
+
+    handler = ucv.handler.ModelHandlerCv(model, criterion, device, logpath)
+    handler.record_metadata("dataset", dataset)
+    handler.record_metadata("seed", seed)
+    handler.record_metadata("trn_preprocess", trn_preprocess)
+    handler.record_metadata("val_preprocess", val_preprocess)
+    handler.record_metadata("batch_size", batch_size)
+    handler.record_metadata("num_epochs", num_epochs)
+    handler.record_metadata("optimizer", optimizer)
+    handler.record_metadata("optimizer_params", optimizer_params)
+    handler.record_metadata("scheduler", scheduler)
+    handler.record_metadata("scheduler_params", scheduler_params)
+    handler.record_metadata("checkpoint_path", checkpoint_path)
     handler.log_metadata()
 
-    trainer = ucommon.trainer.Trainer(handler)
-    trainer.train_and_validate(trn_loader, val_loader, num_epochs=handler.metadata["num_pochs"], save_to=handler.metadata["checkpoint_path"])
+    trn_set, val_set = ucv.dataset.get_dataset(dataset, trn_preprocess, val_preprocess)
+    trn_loader = tdata.DataLoader(trn_set, batch_size=batch_size, shuffle=True)
+    val_loader = tdata.DataLoader(val_set, batch_size=batch_size * 8)
+    trainer = ucv.trainer.Trainer(optimizer, scheduler)
+    trainer.train_and_validate(handler, trn_loader, val_loader, num_epochs, save_to=checkpoint_path)
