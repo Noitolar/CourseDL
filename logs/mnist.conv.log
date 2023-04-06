@@ -1,0 +1,65 @@
+
+
+[+] exp starts from: 2023-04-04 00:14:44
+[+] model: SimpleConvClassifier
+    [+] SimpleConvClassifier(
+    [+]   (layer1): Sequential(
+    [+]     (0): Conv2d(1, 16, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2))
+    [+]     (1): ReLU()
+    [+]     (2): BatchNorm2d(16, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    [+]     (3): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    [+]   )
+    [+]   (layer2): Sequential(
+    [+]     (0): Conv2d(16, 32, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2))
+    [+]     (1): ReLU()
+    [+]     (2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    [+]     (3): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    [+]   )
+    [+]   (flatten): Flatten(start_dim=1, end_dim=-1)
+    [+]   (fc): Linear(in_features=1568, out_features=10, bias=True)
+    [+] )
+[+] criterion: CrossEntropyLoss
+[+] device: cuda:0
+[+] dataset: mnist
+[+] seed: 0
+[+] trn_preprocess: 
+    [+] trn_preprocess.00: ToTensor()
+    [+] trn_preprocess.01: Normalize(mean=[0.485],std=[0.229])
+[+] val_preprocess: 
+    [+] val_preprocess.00: ToTensor()
+    [+] val_preprocess.01: Normalize(mean=[0.485],std=[0.229])
+[+] batch_size: 32
+[+] num_epochs: 8
+[+] optimizer: SGD
+    [+] optimizer_params.lr: 0.001
+    [+] optimizer_params.momentum: 0.9
+    [+] optimizer_params.nesterov: True
+[+] scheduler: MultiStepLR
+    [+] scheduler_params.milestones: [4, 6]
+    [+] scheduler_params.gamma: 0.1
+[+] checkpoint_path: ./checkpoints/mnist.conv.pt
+    ========================================
+    [001] trn-loss: 0.1084 --- trn-acc: 96.74%
+    [001] val-loss: 0.0428 --- val-acc: 98.63%
+    ========================================
+    [002] trn-loss: 0.0396 --- trn-acc: 98.81%
+    [002] val-loss: 0.0328 --- val-acc: 98.93%
+    ========================================
+    [003] trn-loss: 0.0272 --- trn-acc: 99.20%
+    [003] val-loss: 0.0322 --- val-acc: 98.81%
+    ========================================
+    [004] trn-loss: 0.0196 --- trn-acc: 99.45%
+    [004] val-loss: 0.0305 --- val-acc: 99.05%
+    ========================================
+    [005] trn-loss: 0.0118 --- trn-acc: 99.76%
+    [005] val-loss: 0.0259 --- val-acc: 99.16%
+    ========================================
+    [006] trn-loss: 0.0103 --- trn-acc: 99.81%
+    [006] val-loss: 0.0253 --- val-acc: 99.16%
+    ========================================
+    [007] trn-loss: 0.0095 --- trn-acc: 99.84%
+    [007] val-loss: 0.0253 --- val-acc: 99.13%
+    ========================================
+    [008] trn-loss: 0.0096 --- trn-acc: 99.83%
+    [008] val-loss: 0.0252 --- val-acc: 99.16%
+[=] best-val-acc: 99.16%
