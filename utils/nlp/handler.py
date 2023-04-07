@@ -6,16 +6,24 @@ import utils.nlp.recorder as recorder
 
 
 class ModelHandlerGenerator(nn.Module):
-    def __init__(self, model, criterion, device, logpath):
+    def __init__(self, model, criterion, vocab: dict, device, logpath):
         super().__init__()
         self.metadata = dict()
         self.recorder = recorder.Recorder(logpath)
         self.model = model.to(device)
         self.criterion = criterion
         self.device = device
+        self.vocab_encode = vocab["encode"]
+        self.vocab_decode = vocab["decode"]
         self.record_metadata("model", model)
         self.record_metadata("criterion", criterion)
         self.record_metadata("device", device)
+
+    def encode(self, character: str):
+        return self.vocab_encode[character]
+
+    def decode(self, token: int):
+        return self.vocab_decode[token]
 
     def log(self, message):
         self.recorder.audit(message)
@@ -47,11 +55,30 @@ class ModelHandlerGenerator(nn.Module):
             data = data.to(self.device)
         if isinstance(data, dict):
             data = {key: value.to(self.device) for key, value in data.items()}
+        if isinstance(data, tuple):
+            data = tuple([child.to(self.device) for child in data])
+        if isinstance(data, list):
+            data = [child.to(self.device) for child in data]
         return data
 
-    def forward(self, inputs: torch.Tensor, targets=None):
+    def forward(self, inputs: torch.Tensor, hiddens: tuple = None, targets: torch.Tensor = None):
+        if hiddens is None:
+            batch_size = inputs.shape[0]
+            lstm_h0 = torch.zeros(size=(self.model.num_lstm_layers, batch_size, self.model.lstm_output_size), dtype=torch.float)
+            lstm_c0 = torch.zeros(size=(self.model.num_lstm_layers, batch_size, self.model.lstm_output_size), dtype=torch.float)
+            hiddens = (lstm_h0, lstm_c0)
         inputs = self.device_transfer(inputs)
         targets = self.device_transfer(targets)
-        preds, hidden = self.model(inputs)
-        loss = self.criterion(preds, targets) if targets is not None else None
-        return preds, loss
+        hiddens = self.device_transfer(hiddens)
+        preds, hiddens = self.model(inputs, hiddens)
+
+        # 相当于把batch内的多个样本拼接起来算损失函数
+        if targets is not None:
+            batch_size, sequence_length, vocab_size = preds.shape
+            preds = preds.reshape(batch_size * sequence_length, vocab_size)
+            targets = targets.reshape(batch_size * sequence_length)
+            loss = self.criterion(preds, targets)
+            self.recorder.update(preds, targets, loss)
+        else:
+            loss = None
+        return preds, loss, hiddens
