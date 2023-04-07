@@ -12,14 +12,13 @@ class LstmGnerator(nn.Module):
         self.lstm = nn.LSTM(embedding_output_dim, lstm_output_dim, num_layers=num_lstm_layers, batch_first=True, dropout=0.5)
         self.fc = nn.Linear(lstm_output_dim, embedding_input_dim)
 
-    def forward(self, inputs, previous_lstm_hiddens=None):
+    def forward(self, inputs: torch.Tensor, previous_lstm_hiddens=None):
         if previous_lstm_hiddens is None:
-            batch_size, sequence_length = inputs.shape
-            lstm_h0 = inputs.data.new(self.num_lstm_layers, batch_size, self.lstm_output_dim).fill_(0).float()
-            lstm_c0 = inputs.data.new(self.num_lstm_layers, batch_size, self.lstm_output_dim).fill_(0).float()
+            batch_size = inputs.shape[0]
+            lstm_h0 = inputs.new_zeros(size=(self.num_lstm_layers, batch_size, self.lstm_output_dim))
+            lstm_c0 = inputs.new_zeros(size=(self.num_lstm_layers, batch_size, self.lstm_output_dim))
             previous_lstm_hiddens = (lstm_h0, lstm_c0)
         embedded_inputs = self.embedding(inputs)
         lstm_outputs, lstm_hiddens = self.lstm(embedded_inputs, previous_lstm_hiddens)
         outputs = self.fc(lstm_outputs.flatten())
         return outputs, lstm_hiddens
-
