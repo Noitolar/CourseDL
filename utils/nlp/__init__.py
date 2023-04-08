@@ -1,4 +1,6 @@
 __all__ = [
+    "config",
+    "recorder",
     "nnmodels",
     "handler",
     "dataset",

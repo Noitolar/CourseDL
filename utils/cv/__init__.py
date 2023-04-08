@@ -1,9 +1,10 @@
 __all__ = [
+    "config",
     "nnmodels",
     "handler",
     "dataset",
     "trainer",
-    "recorder"
+    "recorder",
 ]
 
 from utils.cv import *

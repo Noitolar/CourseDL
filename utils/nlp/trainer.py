@@ -4,35 +4,37 @@ import utils.nlp as unlp
 
 
 class Trainer:
-    def __init__(self, optimizer, scheduler=None):
-        self.optimizer = optimizer
-        self.scheduler = scheduler
+    def __init__(self, handler, config: unlp.config.ConfigObject):
+        self.handler = handler
+        self.config = config
+        self.optimizer = config.optimizer_class(handler.model.parameters(), **config.optimizer_params)
+        self.scheduler = config.scheduler_class(self.optimizer, **config.scheduler_params) if config.scheduler_class is not None else None
 
-    def train(self, handler: unlp.handler.ModelHandlerGenerator, loader, index):
-        handler.train()
+    def train(self, loader, index):
+        self.handler.train()
         for inputs, targets in tqdm.tqdm(loader, desc=f"    [{index + 1:03d}] training", delay=0.2, leave=False, ascii="->"):
-            preds, loss, hidden = handler(inputs=inputs, targets=targets)
+            preds, loss, hidden = self.handler(inputs=inputs, targets=targets)
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
-        accuracy, loss = handler.recorder.accuracy()
-        handler.log(f"    [{index + 1:03d}] trn-loss: {loss:.4f} --- trn-acc: {accuracy:.2%}")
-        handler.recorder.clear()
+        accuracy, loss = self.handler.recorder.accuracy()
+        self.handler.log(f"    [{index + 1:03d}] trn-loss: {loss:.4f} --- trn-acc: {accuracy:.2%}")
+        self.handler.recorder.clear()
         if self.scheduler is not None:
             self.scheduler.step()
         report = {"index": index, "loss": loss, "accuracy": accuracy}
         return report
 
     @torch.no_grad()
-    def validate(self, handler: unlp.handler.ModelHandlerGenerator, input_tokens: list, output_length: int):
-        handler.eval()
-        start_token = handler.encode("<START>")
-        end_token = handler.encode("<EOP>")
+    def validate(self, input_tokens: list, output_length: int):
+        self.handler.eval()
+        start_token = 8291
+        end_token = 8290
         if input_tokens[0] != start_token:
             input_tokens.insert(0, start_token)
         output_tokens = input_tokens
         inputs = torch.tensor(input_tokens).unsqueeze(0)
-        outputs, _, hiddens = handler(inputs=inputs, hiddens=None)
+        outputs, _, hiddens = self.handler(inputs=inputs, hiddens=None)
         for _ in range(output_length - len(input_tokens)):
             preds = outputs[0][-1].argmax(axis=0)
             output_tokens.append(int(preds.item()))
@@ -40,5 +42,5 @@ class Trainer:
                 break
             else:
                 inputs = preds.reshape(1, 1)
-                outputs, _, hiddens = handler(inputs=inputs, hiddens=hiddens)
-        return "".join([handler.decode(int(x)) for x in output_tokens])
+                outputs, _, hiddens = self.handler(inputs=inputs, hiddens=hiddens)
+        return output_tokens

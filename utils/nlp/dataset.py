@@ -1,15 +1,16 @@
 import torch
 import torch.utils.data as tdata
-import torch.nn.functional as func
 import numpy as np
 
 
 class DatasetPoemGenerator(tdata.Dataset):
-    def __init__(self, dataset_name, sequence_length=50):
-        assert dataset_name in ["poem"]
-        npz_data = np.load(f"./datasets/{dataset_name}/tang.npz", allow_pickle=True)
+    def __init__(self, sequence_length=50, use_samples=-1):
+        npz_data = np.load(f"./datasets/poem/tang.npz", allow_pickle=True)
         self.vocab = {"encode": npz_data["word2ix"].item(), "decode": npz_data["ix2word"].item()}
-        self.sentences = npz_data["data"]
+        if use_samples == -1:
+            self.sentences = npz_data["data"]
+        else:
+            self.sentences = npz_data["data"][:use_samples]
         self.sequence_length = sequence_length
         self.preprocess()
 
@@ -25,8 +26,11 @@ class DatasetPoemGenerator(tdata.Dataset):
         self.sentences = np.array(new_sentences)
         self.sentences = torch.tensor(self.sentences, dtype=torch.long)
 
-    def show_sentence(self, index):
-        print("".join([self.vocab["decode"][int(x)] for x in self.sentences[index]]))
+    def encode(self, character: str):
+        return self.vocab["encode"][character]
+
+    def decode(self, token: int):
+        return self.vocab["decode"][token]
 
     def __getitem__(self, index):
         sentence = self.sentences[index, :-1]

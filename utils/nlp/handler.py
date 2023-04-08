@@ -2,53 +2,39 @@ import torch
 import torch.nn as nn
 import torchvision.transforms as trans
 import time
-import utils.nlp.recorder as recorder
+import transformers as tfm
+import utils.nlp as unlp
 
 
 class ModelHandlerGenerator(nn.Module):
-    def __init__(self, model, criterion, vocab: dict, device, logpath):
+    def __init__(self, config: unlp.config.ConfigObject):
         super().__init__()
-        self.metadata = dict()
-        self.recorder = recorder.Recorder(logpath)
-        self.model = model.to(device)
-        self.criterion = criterion
-        self.device = device
-        self.vocab_encode = vocab["encode"]
-        self.vocab_decode = vocab["decode"]
-        self.record_metadata("model", model)
-        self.record_metadata("criterion", criterion)
-        self.record_metadata("device", device)
-
-    def encode(self, character: str):
-        return self.vocab_encode[character]
-
-    def decode(self, token: int):
-        return self.vocab_decode[token]
+        self.config = config
+        tfm.set_seed(config.seed)
+        self.recorder = unlp.recorder.Recorder(config.log_path)
+        self.device = config.device
+        self.model = config.model_class(**config.model_params).to(config.device)
+        self.criterion = config.criterion_class(**config.criterion_params)
 
     def log(self, message):
         self.recorder.audit(message)
 
-    def record_metadata(self, config_key, config_value):
-        if isinstance(config_value, str) or isinstance(config_value, int):
-            self.metadata[config_key] = config_value
-        elif isinstance(config_value, dict):
-            for key, value in config_value.items():
-                self.metadata[f"{config_key}.{key}"] = value
-        elif isinstance(config_value, trans.transforms.Compose):
-            self.metadata[config_key] = ""
-            for index, value in enumerate(str(config_value).replace(" ", "").split("\n")[1:-1]):
-                self.metadata[f"{config_key}.{index:02d}"] = value
-        else:
-            self.metadata[config_key] = type(config_value).__name__
-
-    def log_metadata(self, show_model=True):
+    def log_config(self):
         self.log(f"\n\n[+] exp starts from: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
-        for key, value in self.metadata.items():
-            indentation = " " * 4 * key.count(".")
-            self.log(f"{indentation}[+] {key}: {value}")
-            if key == "model" and show_model:
-                for layer_string in str(self.model).split("\n"):
-                    self.log(f"    {indentation}[+] {layer_string}")
+        for config_key, config_value in self.config.params_dict.items():
+            if config_value is None:
+                continue
+            elif config_key.endswith("_class"):
+                self.log(f"[+] {config_key.replace('_class', '')}: {config_value.__name__}")
+            elif config_key.endswith("_params") and isinstance(config_value, dict):
+                for param_key, param_value in config_value.items():
+                    self.log(f"    [-] {config_key.replace('_params', '')}.{param_key}: {param_value}")
+            elif isinstance(config_value, trans.transforms.Compose):
+                self.log(f"[+] {config_key}:")
+                for index, value in enumerate(str(config_value).replace(" ", "").split("\n")[1:-1]):
+                    self.log(f"    [-] {index:02d}: {value}")
+            else:
+                self.log(f"[+] {config_key}: {config_value}")
 
     def device_transfer(self, data):
         if isinstance(data, torch.Tensor):
@@ -64,8 +50,8 @@ class ModelHandlerGenerator(nn.Module):
     def forward(self, inputs: torch.Tensor, hiddens: tuple = None, targets: torch.Tensor = None):
         if hiddens is None:
             batch_size = inputs.shape[0]
-            lstm_h0 = torch.zeros(size=(self.model.num_lstm_layers, batch_size, self.model.lstm_output_size), dtype=torch.float)
-            lstm_c0 = torch.zeros(size=(self.model.num_lstm_layers, batch_size, self.model.lstm_output_size), dtype=torch.float)
+            lstm_h0 = torch.zeros(size=(self.model.num_lstm_layers, batch_size, self.model.lstm_output_size), dtype=torch.float, requires_grad=False)
+            lstm_c0 = torch.zeros(size=(self.model.num_lstm_layers, batch_size, self.model.lstm_output_size), dtype=torch.float, requires_grad=False)
             hiddens = (lstm_h0, lstm_c0)
         inputs = self.device_transfer(inputs)
         targets = self.device_transfer(targets)

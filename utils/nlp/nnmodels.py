@@ -1,15 +1,18 @@
-import torch
 import torch.nn as nn
 
 
 class LstmGnerator(nn.Module):
-    def __init__(self, vocab_size, lstm_input_size, lstm_output_size, num_lstm_layers):
+    def __init__(self, vocab_size, lstm_input_size, lstm_output_size, num_lstm_layers=1, lstm_dropout=0.0):
         super().__init__()
         self.lstm_output_size = lstm_output_size
         self.num_lstm_layers = num_lstm_layers
+        # 在windows上多层lstm使用dropout或导致driver shutdown告警，应该是torch的问题
         self.embedding = nn.Embedding(vocab_size, lstm_input_size)
-        self.lstm = nn.LSTM(lstm_input_size, lstm_output_size, num_layers=num_lstm_layers, batch_first=True, dropout=0.0)
-        self.fc = nn.Linear(lstm_output_size, vocab_size)
+        self.lstm = nn.LSTM(lstm_input_size, lstm_output_size, num_layers=num_lstm_layers, batch_first=True, dropout=lstm_dropout)
+        self.fc = nn.Sequential(
+            nn.Linear(lstm_output_size, 2048),
+            nn.Tanh(),
+            nn.Linear(2048, vocab_size))
 
     def forward(self, inputs, hiddens):
         outputs = self.embedding(inputs)
