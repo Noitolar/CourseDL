@@ -1,0 +1,52 @@
+
+
+[+] exp starts from: 2023-04-08 23:32:41
+[+] model: SimpleConvClassifier
+    [-] model.num_classes: 10
+    [-] model.num_channels: 1
+[+] device: cuda:0
+[+] criterion: CrossEntropyLoss
+[+] log_path: ./logs/mnist.conv.log
+[+] dataset: mnist
+[+] seed: 0
+[+] trn_preprocess:
+    [-] 00: ToTensor()
+    [-] 01: Normalize(mean=[0.485],std=[0.229])
+[+] val_preprocess:
+    [-] 00: ToTensor()
+    [-] 01: Normalize(mean=[0.485],std=[0.229])
+[+] batch_size: 32
+[+] num_epochs: 8
+[+] optimizer: SGD
+    [-] optimizer.lr: 0.001
+    [-] optimizer.momentum: 0.9
+    [-] optimizer.nesterov: True
+[+] scheduler: MultiStepLR
+    [-] scheduler.milestones: [4, 6]
+    [-] scheduler.gamma: 0.1
+[+] checkpoint_path: ./checkpoints/mnist.conv.pt
+    ========================================
+    [001] trn-loss: 0.1085 --- trn-acc: 96.72%
+    [001] val-loss: 0.0428 --- val-acc: 98.63%
+    ========================================
+    [002] trn-loss: 0.0394 --- trn-acc: 98.84%
+    [002] val-loss: 0.0339 --- val-acc: 98.94%
+    ========================================
+    [003] trn-loss: 0.0271 --- trn-acc: 99.21%
+    [003] val-loss: 0.0311 --- val-acc: 98.94%
+    ========================================
+    [004] trn-loss: 0.0196 --- trn-acc: 99.45%
+    [004] val-loss: 0.0317 --- val-acc: 99.02%
+    ========================================
+    [005] trn-loss: 0.0118 --- trn-acc: 99.77%
+    [005] val-loss: 0.0266 --- val-acc: 99.12%
+    ========================================
+    [006] trn-loss: 0.0103 --- trn-acc: 99.80%
+    [006] val-loss: 0.0261 --- val-acc: 99.17%
+    ========================================
+    [007] trn-loss: 0.0095 --- trn-acc: 99.83%
+    [007] val-loss: 0.0262 --- val-acc: 99.18%
+    ========================================
+    [008] trn-loss: 0.0096 --- trn-acc: 99.84%
+    [008] val-loss: 0.0260 --- val-acc: 99.17%
+[=] best-val-acc: 99.18%

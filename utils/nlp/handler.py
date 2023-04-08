@@ -22,10 +22,8 @@ class ModelHandlerGenerator(nn.Module):
     def log_config(self):
         self.log(f"\n\n[+] exp starts from: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
         for config_key, config_value in self.config.params_dict.items():
-            if config_value is None:
-                continue
-            elif config_key.endswith("_class"):
-                self.log(f"[+] {config_key.replace('_class', '')}: {config_value.__name__}")
+            if config_key.endswith("_class"):
+                self.log(f"[+] {config_key.replace('_class', '')}: {config_value.__name__ if config_value is not None else None}")
             elif config_key.endswith("_params") and isinstance(config_value, dict):
                 for param_key, param_value in config_value.items():
                     self.log(f"    [-] {config_key.replace('_params', '')}.{param_key}: {param_value}")
