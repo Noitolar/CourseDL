@@ -42,5 +42,5 @@ if __name__ == "__main__":
     trn_set, val_set = ucv.dataset.get_dataset(config)
     trn_loader = tdata.DataLoader(trn_set, batch_size=config.batch_size, shuffle=True)
     val_loader = tdata.DataLoader(val_set, batch_size=config.batch_size * 8)
-    trainer = ucv.trainer.Trainer(handler, config)
+    trainer = ucv.trainer.Trainer(handler)
     trainer.train_and_validate(trn_loader, val_loader)

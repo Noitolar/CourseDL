@@ -4,11 +4,11 @@ import utils.nlp as unlp
 
 
 class Trainer:
-    def __init__(self, handler, config: unlp.config.ConfigObject):
+    def __init__(self, handler: unlp.handler.ModelHandlerGenerator):
         self.handler = handler
-        self.config = config
-        self.optimizer = config.optimizer_class(handler.model.parameters(), **config.optimizer_params)
-        self.scheduler = config.scheduler_class(self.optimizer, **config.scheduler_params) if config.scheduler_class is not None else None
+        self.config = handler.config
+        self.optimizer = handler.config.optimizer_class(handler.model.parameters(), **handler.config.optimizer_params)
+        self.scheduler = handler.config.scheduler_class(self.optimizer, **handler.config.scheduler_params) if handler.config.scheduler_class is not None else None
 
     def train(self, loader, index):
         self.handler.train()

@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     dataset = config.dataset_class(**config.dataset_params)
     trn_loader = tdata.DataLoader(dataset, batch_size=config.batch_size, shuffle=True)
-    trainer = unlp.trainer.Trainer(handler, config)
+    trainer = unlp.trainer.Trainer(handler)
 
     best_accuracy = 0.0
     best_generation = ""
