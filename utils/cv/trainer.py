@@ -33,15 +33,3 @@ class Trainer:
         self.handler.recorder.clear()
         report = {"loss": loss, "accuracy": accuracy}
         return report
-
-    def train_and_validate(self, trn_loader, val_loader):
-        best_val_accuracy = 0.0
-        for index in range(self.handler.config.num_epochs):
-            self.handler.log("    " + "=" * 40)
-            trn_report = self.train(trn_loader, index)
-            val_report = self.validate(val_loader, index)
-            if val_report["accuracy"] > best_val_accuracy:
-                best_val_accuracy = val_report["accuracy"]
-                if self.handler.config.checkpoint_path is not None:
-                    torch.save(self.handler.model.state_dict, self.handler.config.checkpoint_path)
-        self.handler.log(f"[=] best-val-acc: {best_val_accuracy:.2%}")
