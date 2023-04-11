@@ -44,4 +44,4 @@ if __name__ == "__main__":
             if config.checkpoint_path is not None:
                 torch.save(handler.model.state_dict, config.checkpoint_path)
     handler.log(f"[=] best-acc: {best_accuracy:.2%}")
-    handler.log(f"[=] best-poem: {best_generation}")
+    handler.log(f"[=] best-generation: {best_generation}")

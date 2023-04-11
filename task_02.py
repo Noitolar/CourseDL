@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data as tdata
@@ -43,4 +44,16 @@ if __name__ == "__main__":
     trn_loader = tdata.DataLoader(trn_set, batch_size=config.batch_size, shuffle=True)
     val_loader = tdata.DataLoader(val_set, batch_size=config.batch_size * 8)
     trainer = ucv.trainer.Trainer(handler)
-    trainer.train_and_validate(trn_loader, val_loader)
+
+    best_val_accuracy = 0.0
+    for epoch in range(config.num_epochs):
+        handler.log("    " + "=" * 40)
+        trn_report = trainer.train(trn_loader)
+        handler.log(f"    [{epoch + 1:03d}] trn-loss: {trn_report['loss']:.4f} --- trn-acc: {trn_report['accuracy']:.2%}")
+        val_report = trainer.validate(val_loader)
+        handler.log(f"    [{epoch + 1:03d}] val-loss: {trn_report['loss']:.4f} --- val-acc: {trn_report['accuracy']:.2%}")
+        if val_report["accuracy"] > best_val_accuracy:
+            best_val_accuracy = val_report["accuracy"]
+            if config.checkpoint_path is not None:
+                torch.save(handler.model.state_dict, config.checkpoint_path)
+    handler.log(f"[=] best-val-acc: {best_val_accuracy:.2%}")
