@@ -68,7 +68,7 @@ class DatasetSentimentClassifier(tdata.Dataset):
                 self.sentences.append(sentence)
 
     def __getitem__(self, index):
-        sentence = torch.tensor(np.array([self.vocab_embeddings[word] for word in self.sentences[index]]))
+        sentence = torch.tensor(np.array([self.vocab_embeddings[word] for word in self.sentences[index]]), dtype=torch.float32)
         target = torch.tensor(self.targets[index])
         return sentence, target
 
