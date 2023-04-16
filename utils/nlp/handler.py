@@ -6,7 +6,7 @@ import transformers as tfm
 import utils.nlp as unlp
 
 
-class ModelHandlerGenerator(nn.Module):
+class ModelHandlerNLP(nn.Module):
     def __init__(self, config: unlp.config.ConfigObject):
         super().__init__()
         self.config = config
@@ -45,6 +45,11 @@ class ModelHandlerGenerator(nn.Module):
             data = [child.to(self.device) for child in data]
         return data
 
+
+class ModelHandlerGenerator(ModelHandlerNLP):
+    def __init__(self, config: unlp.config.ConfigObject):
+        super().__init__(config)
+
     def forward(self, inputs: torch.Tensor, hiddens: tuple = None, targets: torch.Tensor = None):
         if hiddens is None:
             batch_size = inputs.shape[0]
@@ -66,3 +71,15 @@ class ModelHandlerGenerator(nn.Module):
         else:
             loss = None
         return preds, loss, hiddens
+
+
+class ModelHandlerClassifier(ModelHandlerNLP):
+    def __init__(self, config: unlp.config.ConfigObject):
+        super().__init__(config)
+
+    def forward(self, inputs: torch.Tensor, targets=None):
+        inputs = self.device_transfer(inputs)
+        targets = self.device_transfer(targets)
+        preds = self.model(inputs)
+        loss = self.criterion(preds, targets) if targets is not None else None
+        return preds, loss

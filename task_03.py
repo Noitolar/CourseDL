@@ -35,7 +35,7 @@ if __name__ == "__main__":
     for index in range(config.num_epochs):
         handler.log("    " + "=" * 40)
         report = trainer.train(trn_loader, index)
-        tokens = trainer.validate(input_tokens=[dataset.encode(x) for x in "风"], output_length=50)
+        tokens = trainer.generate(input_tokens=[dataset.encode(x) for x in "风"], output_length=50)
         generation_sample = "".join(dataset.decode(x) for x in tokens)
         handler.log(f"    [{index + 1:03d}] {generation_sample}")
         if report["accuracy"] > best_accuracy:

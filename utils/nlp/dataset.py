@@ -46,8 +46,9 @@ class DatasetPoemGenerator(tdata.Dataset):
 
 class DatasetSentimentClassifier(tdata.Dataset):
 
-    def __init__(self, from_file, sequence_length=64):
-        self.vocab_embeddings = np.load("./datasets/movie/vocab.npy", allow_pickle=True).item()
+    def __init__(self, from_file, from_vocab, sequence_length=64):
+        npz_data = np.load(from_vocab, allow_pickle=True)
+        self.vocab_encode = npz_data["vocab_encode"].item()
         self.sequence_length = sequence_length
         self.sentences = []
         self.targets = []
@@ -68,7 +69,7 @@ class DatasetSentimentClassifier(tdata.Dataset):
                 self.sentences.append(sentence)
 
     def __getitem__(self, index):
-        sentence = torch.tensor(np.array([self.vocab_embeddings[word] for word in self.sentences[index]]), dtype=torch.float32)
+        sentence = torch.tensor(np.array([self.vocab_encode[word] for word in self.sentences[index]]))
         target = torch.tensor(self.targets[index])
         return sentence, target
 
@@ -76,16 +77,24 @@ class DatasetSentimentClassifier(tdata.Dataset):
         return len(self.sentences)
 
     @staticmethod
-    def build_embeddings(from_dir, to_file, from_pretrained_embeddings_model):
+    def build_w2v(from_dir, to_file, from_pretrained_embeddings_model):
         w2v_model = gensim.models.KeyedVectors.load_word2vec_format(from_pretrained_embeddings_model, binary=True)
-        vocab_embeddings = {"_PAD_": np.random.uniform(-1, 1, size=w2v_model.vector_size)}
+        vocab_encode = {"_PAD_": 0}
+        embed_size = w2v_model.vector_size
+        # embeddings = np.zeros(shape=(1, embed_size))
+        embeddings = np.random.uniform(-1, 1, size=(1, embed_size))
         for file_name in [name for name in os.listdir(from_dir) if name.endswith(".txt")]:
             with open(f"{from_dir}/{file_name}", "r", encoding="utf-8") as file:
                 for line in tqdm.tqdm(file.readlines(), desc=f"[+] reading \"{file_name}\"", delay=0.2, leave=False, ascii="->"):
                     for word in line.strip().split()[1:]:
-                        if word not in vocab_embeddings.keys():
+                        if word not in vocab_encode.keys():
+                            vocab_encode[word] = len(vocab_encode)
                             try:
-                                vocab_embeddings[word] = w2v_model[word]
+                                embeddings = np.vstack([embeddings, w2v_model[word].reshape(1, embed_size)])
                             except KeyError:
-                                vocab_embeddings[word] = np.random.uniform(-1, 1, size=w2v_model.vector_size)
-        np.save(to_file, vocab_embeddings)
+                                embeddings = np.vstack([embeddings, np.random.uniform(-1, 1, size=(1, embed_size))])
+        np.savez(to_file, **{"vocab_encode": vocab_encode, "embeddings": embeddings})
+
+    @staticmethod
+    def get_embeddings_weight():
+        return torch.tensor(np.load("./datasets/movie/vocab.npz", allow_pickle=True)["embeddings"], dtype=torch.float32)

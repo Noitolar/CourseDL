@@ -1,4 +1,6 @@
+import torch
 import torch.nn as nn
+import torch.nn.functional as func
 
 
 class LstmGnerator(nn.Module):
@@ -24,20 +26,23 @@ class LstmGnerator(nn.Module):
 
 
 class TextConvClassifier(nn.Module):
-    def __init__(self, sequence_length, num_classes, dropout_rate, embed_size=50):
+    def __init__(self, num_classes, dropout_rate, conv_out_channelses, kernel_sizes, pretrained_embeddings, freeze_embeddings=False):
         super().__init__()
-        self.layer1 = self.build_layer(1, 16, conv_kernel_size=(2, embed_size), pool_kernel_size=(sequence_length - 1, 1))
+        self.embeddings = nn.Embedding.from_pretrained(pretrained_embeddings, freeze=freeze_embeddings)
+        self.embed_size = int(pretrained_embeddings.shape[-1])
+        self.parallel_conv_layers = nn.ModuleList([nn.Conv2d(1, conv_out_channels, (kernel_size, self.embed_size)) for conv_out_channels, kernel_size in zip(conv_out_channelses, kernel_sizes)])
+        # self.bn = nn.BatchNorm2d(conv_out_channels)
         self.dropout = nn.Dropout(dropout_rate)
         self.flatten = nn.Flatten()
-        self.fc = nn.Linear(888, num_classes)
-
-    @staticmethod
-    def build_layer(conv_in_channels, conv_out_channels, conv_kernel_size=(5, 5), conv_stride=1, conv_padding=2, pool_kernel_size=(2, 2)):
-        layer = nn.Sequential(
-            nn.Conv2d(conv_in_channels, conv_out_channels, conv_kernel_size, conv_stride, conv_padding),
-            nn.ReLU(), nn.BatchNorm2d(conv_out_channels), nn.MaxPool2d(pool_kernel_size))
-        return layer
+        self.fc = nn.Linear(sum(conv_out_channelses), num_classes)
 
     def forward(self, inputs):
-        outputs = self.layer1(inputs)
+        outputs = self.embeddings(inputs).unsqueeze(dim=1)
+        outputs = [conv_layer(outputs).squeeze(dim=3) for conv_layer in self.parallel_conv_layers]
+        outputs = [func.relu(output) for output in outputs]
+        outputs = [func.max_pool1d(output, output.size(dim=2)).squeeze(dim=2) for output in outputs]
+        outputs = torch.cat(outputs, dim=1)
+        outputs = self.dropout(outputs)
+        outputs = self.flatten(outputs)
+        outputs = self.fc(outputs)
         return outputs

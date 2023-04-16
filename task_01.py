@@ -41,7 +41,7 @@ if __name__ == "__main__":
         trn_report = trainer.train(trn_loader)
         handler.log(f"    [{epoch + 1:03d}] trn-loss: {trn_report['loss']:.4f} --- trn-acc: {trn_report['accuracy']:.2%}")
         val_report = trainer.validate(val_loader)
-        handler.log(f"    [{epoch + 1:03d}] val-loss: {trn_report['loss']:.4f} --- val-acc: {trn_report['accuracy']:.2%}")
+        handler.log(f"    [{epoch + 1:03d}] val-loss: {val_report['loss']:.4f} --- val-acc: {val_report['accuracy']:.2%}")
         if val_report["accuracy"] > best_val_accuracy:
             best_val_accuracy = val_report["accuracy"]
             if config.checkpoint_path is not None:

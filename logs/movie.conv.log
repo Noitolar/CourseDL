@@ -1,0 +1,44 @@
+
+
+[+] exp starts from: 2023-04-16 20:22:06
+[+] model: TextConvClassifier
+    [-] model.num_classes: 2
+    [-] model.dropout_rate: 0.1
+    [-] model.kernel_sizes: [2, 4, 6, 8]
+    [-] model.conv_out_channelses: [32, 32, 24, 16]
+    [-] model.freeze_embeddings: False
+    [-] model.pretrained_embeddings: tensor([[ 0.0000,  0.0000,  0.0000,  ...,  0.0000,  0.0000,  0.0000],
+        [ 0.1642, -0.1085,  0.1950,  ..., -0.4986,  0.2594, -0.2626],
+        [ 0.3688, -0.1484,  0.0068,  ..., -0.5649,  0.3491, -0.5529],
+        ...,
+        [-0.3737, -0.5502, -0.2598,  ...,  0.4632,  0.4255,  0.0466],
+        [ 0.2875,  0.2226,  0.6066,  ..., -0.1017,  0.1671,  0.1913],
+        [ 0.5021, -0.4564,  0.2155,  ..., -0.3437,  0.1961, -0.0354]])
+[+] device: cuda:0
+[+] criterion: CrossEntropyLoss
+[+] log_path: ./logs/movie.conv.log
+[+] dataset: movie
+[+] seed: 0
+[+] sequence_length: 80
+[+] batch_size: 32
+[+] num_epochs: 4
+[+] optimizer: AdamW
+    [-] optimizer.lr: 0.001
+    [-] optimizer.weight_decay: 0.0001
+[+] scheduler: StepLR
+    [-] scheduler.step_size: 2
+    [-] scheduler.gamma: 0.1
+[+] checkpoint_path: ./checkpoints/movie.conv.pt
+    ========================================
+    [001] trn-loss: 0.4782 --- trn-acc: 76.64%
+    [001] val-loss: 0.4220 --- val-acc: 80.78%
+    ========================================
+    [002] trn-loss: 0.2956 --- trn-acc: 87.64%
+    [002] val-loss: 0.3614 --- val-acc: 84.79%
+    ========================================
+    [003] trn-loss: 0.1672 --- trn-acc: 94.45%
+    [003] val-loss: 0.3645 --- val-acc: 85.10%
+    ========================================
+    [004] trn-loss: 0.1507 --- trn-acc: 94.93%
+    [004] val-loss: 0.3716 --- val-acc: 85.01%
+[=] best-val-acc: 85.10%
