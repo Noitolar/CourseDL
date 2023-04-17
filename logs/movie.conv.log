@@ -7,7 +7,8 @@
     [-] model.kernel_sizes: [2, 4, 6, 8]
     [-] model.conv_out_channelses: [32, 32, 24, 16]
     [-] model.freeze_embeddings: False
-    [-] model.pretrained_embeddings: tensor([[ 0.0000,  0.0000,  0.0000,  ...,  0.0000,  0.0000,  0.0000],
+    [-] model.pretrained_embeddings: tensor([
+        [ 0.0000,  0.0000,  0.0000,  ...,  0.0000,  0.0000,  0.0000],
         [ 0.1642, -0.1085,  0.1950,  ..., -0.4986,  0.2594, -0.2626],
         [ 0.3688, -0.1484,  0.0068,  ..., -0.5649,  0.3491, -0.5529],
         ...,
