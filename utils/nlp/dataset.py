@@ -81,8 +81,8 @@ class DatasetSentimentClassifier(tdata.Dataset):
         w2v_model = gensim.models.KeyedVectors.load_word2vec_format(from_pretrained_embeddings_model, binary=True)
         vocab_encode = {"_PAD_": 0}
         embed_size = w2v_model.vector_size
-        # embeddings = np.zeros(shape=(1, embed_size))
-        embeddings = np.random.uniform(-1, 1, size=(1, embed_size))
+        embeddings = np.zeros(shape=(1, embed_size))
+        # embeddings = np.random.uniform(-1, 1, size=(1, embed_size))
         for file_name in [name for name in os.listdir(from_dir) if name.endswith(".txt")]:
             with open(f"{from_dir}/{file_name}", "r", encoding="utf-8") as file:
                 for line in tqdm.tqdm(file.readlines(), desc=f"[+] reading \"{file_name}\"", delay=0.2, leave=False, ascii="->"):
