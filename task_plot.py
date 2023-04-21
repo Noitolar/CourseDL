@@ -52,4 +52,4 @@ def smooth(lst, num_interpolations):
 
 
 if __name__ == "__main__":
-    plot("./logs/mnist.conv.log", 200)
+    plot("./logs/dogs_vs_cats.resnet18.log", 200)
