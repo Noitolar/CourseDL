@@ -38,9 +38,12 @@ def plot(from_log, num_interpolations=0):
     plt.grid()
     plt.legend()
     plt.show()
+    plt.close()
 
 
 def smooth(lst, num_interpolations):
+    if len(lst) < 0:
+        return None, None
     x = np.linspace(1, len(lst), len(lst))
     y = np.array(lst)
     if num_interpolations <= 0:
@@ -52,4 +55,4 @@ def smooth(lst, num_interpolations):
 
 
 if __name__ == "__main__":
-    plot("./logs/dogs_vs_cats.resnet18.log", 200)
+    plot("./logs/movie.conv.log", 0)
