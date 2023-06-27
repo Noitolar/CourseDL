@@ -37,7 +37,7 @@ if __name__ == "__main__":
     config.scheduler_params = {"step_size": 4, "gamma": 0.1}
     config.checkpoint_path = "./checkpoints/dogs_vs_cats.resnet18.pt"
 
-    handler = ucv.handler.ModelHandlerCv(config)
+    handler = ucv.handler.ModelHandlerVanilla(config)
     handler.log_config()
 
     trn_set, val_set = ucv.dataset.get_dataset(config)

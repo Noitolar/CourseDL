@@ -43,6 +43,23 @@ class ModelHandlerCv(nn.Module):
             data = {key: value.to(self.device) for key, value in data.items()}
         return data
 
+
+class ModelHandlerVanilla(ModelHandlerCv):
+    def __init__(self, config: ucv.config.ConfigObject):
+        super().__init__(config)
+
+    def forward(self, inputs: torch.Tensor, targets=None):
+        inputs = self.device_transfer(inputs)
+        targets = self.device_transfer(targets)
+        preds = self.model(inputs)
+        loss = self.criterion(preds, targets) if targets is not None else None
+        return preds, loss
+
+
+class ModelHandlerLpr(ModelHandlerCv):
+    def __init__(self, config: ucv.config.ConfigObject):
+        super().__init__(config)
+
     def forward(self, inputs: torch.Tensor, targets=None):
         inputs = self.device_transfer(inputs)
         targets = self.device_transfer(targets)

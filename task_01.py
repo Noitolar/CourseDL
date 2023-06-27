@@ -27,7 +27,7 @@ if __name__ == "__main__":
     config.scheduler_params = {"milestones": [4, 6], "gamma": 0.1}
     config.checkpoint_path = "./checkpoints/mnist.conv.pt"
 
-    handler = ucv.handler.ModelHandlerCv(config)
+    handler = ucv.handler.ModelHandlerVanilla(config)
     handler.log_config()
 
     trn_set, val_set = ucv.dataset.get_dataset(config)
